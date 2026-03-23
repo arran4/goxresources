@@ -163,6 +163,7 @@ jobs:
       has_dart_or_flutter_tests: ${{ steps.detect.outputs.has_dart_or_flutter_tests }}
       has_packaging: ${{ steps.detect.outputs.has_packaging }}
       has_hugo: ${{ steps.detect.outputs.has_hugo }}
+      has_java: ${{ steps.detect.outputs.has_java }}
     steps:
       - uses: actions/checkout@v4
 
@@ -182,6 +183,7 @@ jobs:
           ([[ -d test ]] || [[ -d tests ]] || [[ -f pubspec.yaml ]]) && echo "has_dart_or_flutter_tests=true" >> "$GITHUB_OUTPUT" || echo "has_dart_or_flutter_tests=false" >> "$GITHUB_OUTPUT"
           ([[ -d packaging ]] || [[ -d pkg ]] || [[ -f debian/control ]]) && echo "has_packaging=true" >> "$GITHUB_OUTPUT" || echo "has_packaging=false" >> "$GITHUB_OUTPUT"
           [[ -d site/mydocs ]] && echo "has_hugo=true" >> "$GITHUB_OUTPUT" || echo "has_hugo=false" >> "$GITHUB_OUTPUT"
+          [[ -f pom.xml ]] && echo "has_java=true" >> "$GITHUB_OUTPUT" || echo "has_java=${EXPECT_JAVA:-false}" >> "$GITHUB_OUTPUT"
 
       - id: profile
         shell: bash
@@ -271,7 +273,7 @@ jobs:
   java-build-test:
     name: Java build/test
     needs: [route, discover]
-    if: ${{ needs.route.outputs.run_code_checks == 'true' && hashFiles('pom.xml') != '' }}
+    if: ${{ needs.route.outputs.run_code_checks == 'true' && needs.discover.outputs.has_java == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
