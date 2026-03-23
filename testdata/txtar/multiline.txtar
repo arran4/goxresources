@@ -1,0 +1,10 @@
+-- description.txt --
+Tests multi-line values using backslash.
+-- input.txt --
+*customColors:	red \
+				green \
+				blue
+-- expected.txt --
+*customColors:	red \
+				green \
+				blue

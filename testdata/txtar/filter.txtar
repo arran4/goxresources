@@ -1,0 +1,19 @@
+-- description.txt --
+Tests filtering by app name.
+-- options.json --
+{"filter": "XTerm"}
+-- input.txt --
+! General
+*color0:	black
+*color1:	red
+
+! XTerm settings
+XTerm*faceName:	Monospace
+XTerm*faceSize:	10
+
+! URxvt settings
+URxvt.font:	xft:Monospace:size=10
+-- expected.txt --
+! XTerm settings
+XTerm*faceName:	Monospace
+XTerm*faceSize:	10

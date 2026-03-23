@@ -1,0 +1,18 @@
+-- description.txt --
+Tests basic parsing and formatting with comments, empty lines, and simple key-value pairs.
+-- input.txt --
+! This is a comment
+
+*foreground:	white
+*background:	black
+
+! Another comment
+XTerm*faceName:	Monospace
+-- expected.txt --
+! This is a comment
+
+*foreground:	white
+*background:	black
+
+! Another comment
+XTerm*faceName:	Monospace
