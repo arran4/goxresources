@@ -149,6 +149,54 @@ func main() {
 }
 ```
 
+## Common Properties
+
+While applications can define any resource, some are widely standardized across X11 systems:
+
+### Font & Display (Xft)
+- `Xft.dpi`: Sets the DPI (Dots Per Inch) scaling (e.g., `96`, `192`).
+- `Xft.antialias`: Enables font anti-aliasing (`1` or `true`, `0` or `false`).
+- `Xft.hinting`: Enables font hinting (`1` or `true`, `0` or `false`).
+- `Xft.hintstyle`: Sets hinting level (`hintnone`, `hintslight`, `hintmedium`, `hintfull`).
+- `Xft.rgba`: Subpixel rendering type (`rgb`, `bgr`, `vrgb`, `vbgr`, or `none`).
+- `Xft.lcdfilter`: LCD filter type (e.g., `lcddefault`).
+- `Xft.autohint`: Enables autohinter (`1` or `true`, `0` or `false`).
+
+### Mouse Cursors
+- `Xcursor.theme`: The cursor theme name (e.g., `Adwaita`, `Vanilla-DMZ`).
+- `Xcursor.size`: The size of the cursor in pixels (e.g., `16`, `32`, `48`).
+
+### Common Terminal Emulators
+#### XTerm
+- `XTerm*faceName`: The TrueType font used (e.g., `xft:Monospace:size=10`).
+- `XTerm*faceSize`: Size of the font.
+- `XTerm*background`: Background color (e.g., `#282C34`).
+- `XTerm*foreground`: Foreground text color.
+
+#### URxvt (rxvt-unicode)
+- `URxvt.font`: Main font string (e.g., `xft:Monospace:size=10`).
+- `URxvt.scrollBar`: Toggles the scrollbar (`true`, `false`).
+- `URxvt.geometry`: Sets initial window size (`80x24`).
+- `URxvt.transparent`: Enables pseudo-transparency.
+- `URxvt.depth`: Used for true transparency (e.g., `32`).
+
+### Colors
+Most terminal emulators share a common color palette scheme:
+- `*color0` to `*color7`: Standard ANSI colors (Black, Red, Green, Yellow, Blue, Magenta, Cyan, White).
+- `*color8` to `*color15`: Bright ANSI colors.
+- `*background`: Default background.
+- `*foreground`: Default foreground.
+
+## More Applications
+
+Many other X11 applications can be configured via `.Xresources`. For application-specific configuration details, refer to their official documentation:
+
+- **XScreenSaver**: [XScreenSaver Documentation](https://www.jwz.org/xscreensaver/man.html#10)
+- **xpdf**: [xpdf Manual](https://www.xpdfreader.com/xpdf-man.html)
+- **rxvt-unicode (URxvt)**: [urxvt(1) Manual Page](http://pod.tst.eu/http://cvs.schmorp.de/rxvt-unicode/doc/rxvt.1.pod)
+- **XTerm**: [xterm(1) Manual Page](https://invisible-island.net/xterm/manpage/xterm.html#h3-RESOURCES)
+- **rofi**: [rofi(1) Manual Page (Legacy Xresources)](https://man.archlinux.org/man/rofi.1#XRESOURCES_AND_THEMING)
+
 ## Syntax of the Document
 
 The `.Xresources` document syntax uses the following elements:
