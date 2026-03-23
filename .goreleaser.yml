@@ -1,0 +1,73 @@
+project_name: xresources
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: app
+    binary: xresources
+    main: .
+    env:
+      - CGO_ENABLED=0
+
+archives:
+  - formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+
+checksum:
+  name_template: checksums.txt
+
+dockers:
+  - image_templates:
+      - ghcr.io/OWNER/REPO:{{ .Tag }}
+      - ghcr.io/OWNER/REPO:latest
+    dockerfile: Dockerfile.goreleaser
+    use: buildx
+    goos: linux
+    goarch: [amd64, arm64]
+
+nfpms:
+  - id: linux-packages
+    package_name: xresources
+    vendor: Your Org
+    homepage: https://example.com
+    maintainer: You <you@example.com>
+    description: App description
+    license: MIT
+    formats:
+      - deb
+      - rpm
+      - apk
+      - archlinux
+    section: default
+    priority: optional
+
+homebrew_casks:
+  -
+    repository:
+      owner: arran4
+      name: homebrew-tap
+      branch: "{{.ProjectName}}-{{.Version}}"
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
+      pull_request:
+        enabled: true
+        draft: false
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+
+scoops:
+  - name: xresources
+    bucket:
+      owner: OWNER
+      name: scoop-bucket
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
