@@ -2,12 +2,16 @@
 
 A robust Go library for parsing, formatting, and filtering `.Xresources` files.
 
+## Why is this important?
+
+`.Xresources` has historically been the standard way to configure core X11 applications. By supporting a robust parsing method, configuration tools can interact deeply with user setups without requiring destructive overhauls of their files. Preserving comments, spacing, and application-specific blocks keeps user settings intact while enabling programmatic configuration updates.
+
 ## When Should You Use It?
 
 The `xresources` library is perfect for you when:
-- You need to build a configuration tool that manipulates `.Xresources` files programmatically.
-- You want to extract all settings related to a specific application (e.g., `XTerm` or `URxvt`) and modify them, without dropping the user's surrounding comments or breaking other applications.
-- You require **circular testing**, meaning any file you parse can be written back exactly as it was, maintaining line continuations, spacing, and comments.
+- You need to build a configuration tool that manipulates `.Xresources` files programmatically. This is extremely useful for a class of applications like terminal emulators (e.g., `XTerm`, `URxvt`) or window managers (e.g., `i3`, `dwm`, or `xmonad`) that rely on system-wide or user-level resource settings.
+- You want to extract all settings related to a specific application and modify them, without dropping the user's surrounding comments or breaking other applications.
+- (Note: On Wayland, there is no direct equivalent to a central `.Xresources` file, as configurations are mostly decentralized or managed via standard configuration files per application, often using formats like TOML, YAML, or INI located in `~/.config/`).
 
 ## Features
 - Full support for comments (`!`), preprocessor macros (`#`), and blank lines.
@@ -90,7 +94,39 @@ URxvt.font: xft:Monospace:size=10
 }
 ```
 
-## Testing Methodology
+### 3. Loading and Merging Files Automatically
 
-This library uses the `txtar` testing approach outlined by [Arran's Technical Blog](https://arran4.github.io/blog/post/2026/004-txtar-patterns-for-agents/).
-Every scenario is written in a `testdata/txtar/*.txtar` fixture, representing isolated end-to-end setups where `options.json` acts as an operation configurator, and files map cleanly from `input.txt` -> operations -> `expected.txt` for highly reproducible agent and deterministic checks.
+You can load and merge settings dynamically from different sources like XDG config paths and home directories using our flexible variadic loader:
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/your-org/xresources"
+)
+
+func main() {
+	doc, err := xresources.Load(
+		xresources.UseXDG(true),
+		xresources.UseHomeDir(true),
+		xresources.MergeSystem(true),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Print(doc.String())
+}
+```
+
+## Syntax of the Document
+
+The `.Xresources` document syntax uses the following elements:
+- **Comments**: Lines starting with `!` are ignored or treated as comments.
+- **Preprocessor Directives**: Lines starting with `#` are used for `#define`, `#include`, etc.
+- **Resources**: Key-value pairs defined as `Key: Value`, where `Key` identifies an application or resource path (often separated by `*` or `.`), and `Value` is the content.
+- **Line Continuations**: Multi-line strings can be formed using a trailing `\` at the end of a line.
+- **Empty Lines**: Ignored functionally, but preserved by this parser to ensure identical rewrites.
