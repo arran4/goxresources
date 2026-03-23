@@ -23,6 +23,33 @@ The `xresources` library is perfect for you when:
 
 ### Installation
 
+#### GitHub Releases
+Download binaries from: https://github.com/your-org/xresources/releases
+
+#### Homebrew
+```bash
+brew tap arran4/homebrew-tap
+brew install xresources
+```
+
+#### Docker
+```bash
+docker pull ghcr.io/your-org/xresources:latest
+docker run --rm ghcr.io/your-org/xresources:latest --help
+```
+
+#### Go install
+```bash
+go install github.com/your-org/xresources@latest
+```
+
+#### Native packages
+- Debian/Ubuntu (`.deb`): see Releases assets
+- RPM (`.rpm`): see Releases assets
+- Alpine (`.apk`): see Releases assets
+- Arch (`.pkg.tar.zst` or repo): see Releases assets
+
+#### Go get (Library)
 ```bash
 go get github.com/your-org/xresources
 ```
