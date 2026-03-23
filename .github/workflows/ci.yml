@@ -24,7 +24,19 @@ on:
         type: choice
         options:
           - lint-fix
+          - build
+          - release-major
+          - release-minor
+          - release-patch
+          - release-test
+          - release-rc
+          - release-alpha
           - monthly-maintenance
+      release_version_override:
+        description: "Optional explicit release version (for example 2.4.0 or 2.4.0-rc.2)"
+        required: false
+        default: ""
+        type: string
       allow_prs:
         description: "Allow automation to open pull requests"
         required: false
@@ -57,6 +69,7 @@ jobs:
       run_code_checks: ${{ steps.route.outputs.run_code_checks }}
       run_pr_meta_checks: ${{ steps.route.outputs.run_pr_meta_checks }}
       run_cleanup: ${{ steps.route.outputs.run_cleanup }}
+      run_release: ${{ steps.route.outputs.run_release }}
       is_monthly: ${{ steps.route.outputs.is_monthly }}
       is_nightly: ${{ steps.route.outputs.is_nightly }}
     steps:
@@ -68,6 +81,7 @@ jobs:
           run_code_checks=false
           run_pr_meta_checks=false
           run_cleanup=false
+          run_release=false
           is_monthly=false
           is_nightly=false
 
@@ -85,8 +99,14 @@ jobs:
                 fi
               fi
               ;;
+            release)
+              run_release=true
+              ;;
             workflow_dispatch)
               run_code_checks=true
+              if [[ "${{ inputs.mode }}" == release-* ]]; then
+                run_release=true
+              fi
               if [[ "${{ inputs.mode }}" == "monthly-maintenance" ]]; then
                 is_monthly=true
               fi
@@ -108,9 +128,75 @@ jobs:
           echo "run_code_checks=$run_code_checks" >> "$GITHUB_OUTPUT"
           echo "run_pr_meta_checks=$run_pr_meta_checks" >> "$GITHUB_OUTPUT"
           echo "run_cleanup=$run_cleanup" >> "$GITHUB_OUTPUT"
+          echo "run_release=$run_release" >> "$GITHUB_OUTPUT"
           echo "is_monthly=$is_monthly" >> "$GITHUB_OUTPUT"
           echo "is_nightly=$is_nightly" >> "$GITHUB_OUTPUT"
 
+
+  prepare-release-tag:
+    name: Prepare release tag
+    needs: [route]
+    if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') }}
+    runs-on: ubuntu-latest
+    outputs:
+      release_tag: ${{ steps.tag.outputs.release_tag }}
+      next_version: ${{ steps.tag.outputs.next_version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          MODE="${{ inputs.mode }}"
+          OVERRIDE="${{ inputs.release_version_override }}"
+
+          if [[ -n "$OVERRIDE" ]]; then
+            OVERRIDE="${OVERRIDE#v}"
+            next_tag="v$OVERRIDE"
+          else
+            git fetch --tags
+            HIGHEST_TAG=$(git tag -l "v*" | sed 's/^v//' | sort -V | tail -n 1)
+            [ -z "$HIGHEST_TAG" ] && HIGHEST_TAG="0.0.0"
+
+            # Remove any pre-release suffixes for the bump calculation
+            CLEAN_TAG="${HIGHEST_TAG%%-*}"
+            IFS='.' read -r maj min pat <<< "$CLEAN_TAG"
+
+            if [[ "$MODE" == "release-major" ]]; then
+              maj=$((maj + 1)); min=0; pat=0; suffix=""
+            elif [[ "$MODE" == "release-minor" ]]; then
+              min=$((min + 1)); pat=0; suffix=""
+            elif [[ "$MODE" == "release-patch" ]]; then
+              pat=$((pat + 1)); suffix=""
+            elif [[ "$MODE" == "release-test" ]]; then
+              pat=$((pat + 1)); suffix="-test.1"
+            elif [[ "$MODE" == "release-rc" ]]; then
+              pat=$((pat + 1)); suffix="-rc.1"
+            elif [[ "$MODE" == "release-alpha" ]]; then
+              pat=$((pat + 1)); suffix="-alpha.1"
+            else
+              echo "Unsupported release mode: $MODE"; exit 1
+            fi
+            next_tag="v${maj}.${min}.${pat}${suffix}"
+          fi
+
+          [[ "$next_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.]+)?$ ]] || {
+            echo "Invalid tag format: $next_tag" >&2
+            exit 1
+          }
+          git fetch --tags --force
+          if git rev-parse "$next_tag" >/dev/null 2>&1; then
+            echo "Tag already exists: $next_tag" >&2
+            echo "Choose a new mode or set release_version_override." >&2
+            exit 1
+          fi
+
+          echo "release_tag=$next_tag" >> "$GITHUB_OUTPUT"
+          clean_tag="${next_tag#v}"; clean_tag="${clean_tag%%-*}"
+          IFS='.' read -r maj min pat <<< "$clean_tag"
+          echo "next_version=${maj:-0}.${min:-0}.$(( ${pat:-0} + 1 ))-SNAPSHOT" >> "$GITHUB_OUTPUT"
 
   discover:
     name: Discover capabilities and cost profile
@@ -119,6 +205,7 @@ jobs:
     outputs:
       profile: ${{ steps.profile.outputs.profile }}
       has_go: ${{ steps.detect.outputs.has_go }}
+      has_goreleaser: ${{ steps.detect.outputs.has_goreleaser }}
     steps:
       - uses: actions/checkout@v4
 
@@ -127,6 +214,7 @@ jobs:
         run: |
           set -euo pipefail
           echo "has_go=${EXPECT_GO:-true}" >> "$GITHUB_OUTPUT"
+          echo "has_goreleaser=${EXPECT_GORELEASER:-false}" >> "$GITHUB_OUTPUT"
 
       - id: profile
         shell: bash
@@ -283,6 +371,53 @@ jobs:
             --base main \
             --head "$BRANCH" \
             --label "ci-autofix"
+
+  manual-gh-release:
+    name: Manual release creation
+    needs: [prepare-release-tag]
+    if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Push prepared tag (retry)
+        env:
+          TAG: ${{ needs.prepare-release-tag.outputs.release_tag }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag "$TAG"
+          git push origin "$TAG" || { sleep 2; git push origin "$TAG"; }
+      - name: Create release with generated notes + discussion
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.prepare-release-tag.outputs.release_tag }}
+        run: |
+          set -euo pipefail
+          prerelease=""
+          case "${{ inputs.mode }}" in
+            release-test|release-rc|release-alpha) prerelease="--prerelease" ;;
+          esac
+
+          discussion_arg=""
+          categories=$(gh api graphql \
+            -f query='              query($owner: String!, $name: String!) {
+            repository(owner: $owner, name: $name) {                  discussionCategories(first: 20) { nodes { name } }                }              }' \
+            -F owner="${GITHUB_REPOSITORY%%/*}" \
+            -F name="${GITHUB_REPOSITORY##*/}" \
+            --jq '.data.repository.discussionCategories.nodes[].name' \
+            2>/dev/null || true)
+
+          if echo "$categories" | grep -q '^Announcements$'; then
+            discussion_arg='--discussion-category Announcements'
+          elif echo "$categories" | grep -q '^General$'; then
+            discussion_arg='--discussion-category General'
+          fi
+
+          # shellcheck disable=SC2086
+          gh release create "$TAG" --generate-notes $prerelease $discussion_arg
 
   cleanup-autofix-prs:
     name: Cleanup autofix PRs on parent close
