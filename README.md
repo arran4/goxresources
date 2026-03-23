@@ -187,6 +187,16 @@ Most terminal emulators share a common color palette scheme:
 - `*background`: Default background.
 - `*foreground`: Default foreground.
 
+## More Applications
+
+Many other X11 applications can be configured via `.Xresources`. For application-specific configuration details, refer to their official documentation:
+
+- **XScreenSaver**: [XScreenSaver Documentation](https://www.jwz.org/xscreensaver/man.html#10)
+- **xpdf**: [xpdf Manual](https://www.xpdfreader.com/xpdf-man.html)
+- **rxvt-unicode (URxvt)**: [urxvt(1) Manual Page](http://pod.tst.eu/http://cvs.schmorp.de/rxvt-unicode/doc/rxvt.1.pod)
+- **XTerm**: [xterm(1) Manual Page](https://invisible-island.net/xterm/manpage/xterm.html#h3-RESOURCES)
+- **rofi**: [rofi(1) Manual Page (Legacy Xresources)](https://man.archlinux.org/man/rofi.1#XRESOURCES_AND_THEMING)
+
 ## Syntax of the Document
 
 The `.Xresources` document syntax uses the following elements:
