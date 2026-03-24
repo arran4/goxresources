@@ -401,7 +401,7 @@ jobs:
             release-test|release-rc|release-alpha) prerelease="--prerelease" ;;
           esac
 
-          discussion_arg="--discussion-category announcements"
+          discussion_arg="--discussion-category announcement"
 
           if [[ -n "$prerelease" ]]; then
             echo "Skipping discussion for prerelease"
