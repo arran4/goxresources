@@ -60,6 +60,7 @@ permissions:
   security-events: write
   pages: write
   id-token: write
+  discussions: write
 
 jobs:
   route:
@@ -401,7 +402,7 @@ jobs:
             release-test|release-rc|release-alpha) prerelease="--prerelease" ;;
           esac
 
-          discussion_arg="--discussion-category announcement"
+          discussion_arg="--discussion-category announcements"
 
           if [[ -n "$prerelease" ]]; then
             echo "Skipping discussion for prerelease"
