@@ -410,10 +410,10 @@ jobs:
             --jq 'if .data.repository.hasDiscussionsEnabled then .data.repository.discussionCategories.nodes[].name else empty end' \
             2>/dev/null || true)
 
-          if echo "$categories" | grep -q '^Announcements$'; then
-            discussion_arg='--discussion-category Announcements'
-          elif echo "$categories" | grep -q '^General$'; then
-            discussion_arg='--discussion-category General'
+          if echo "$categories" | grep -i -q '^Announcements$'; then
+            discussion_arg='--discussion-category announcements'
+          elif echo "$categories" | grep -i -q '^General$'; then
+            discussion_arg='--discussion-category general'
           fi
 
           # shellcheck disable=SC2086
