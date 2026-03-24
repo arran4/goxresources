@@ -412,12 +412,12 @@ jobs:
 
           echo "Categories fetched: $categories"
 
-          if echo "$categories" | grep -i -q '^Announcements$'; then
-            echo "Matched Announcements category"
-            discussion_arg='--discussion-category announcements'
-          elif echo "$categories" | grep -i -q '^General$'; then
-            echo "Matched General category"
-            discussion_arg='--discussion-category general'
+          if match=$(echo "$categories" | grep -i '^Announcements$'); then
+            echo "Matched $match category"
+            discussion_arg="--discussion-category $match"
+          elif match=$(echo "$categories" | grep -i '^General$'); then
+            echo "Matched $match category"
+            discussion_arg="--discussion-category $match"
           else
             echo "Did not match any known discussion categories"
           fi
