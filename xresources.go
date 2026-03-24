@@ -199,7 +199,7 @@ func (d *Document) WriteTo(w io.Writer) (int64, error) {
 // String returns the document as a string.
 func (d *Document) String() string {
 	var buf strings.Builder
-	d.WriteTo(&buf)
+	_, _ = d.WriteTo(&buf)
 	return buf.String()
 }
 

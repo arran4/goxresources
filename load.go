@@ -1,3 +1,4 @@
+// Package xresources provides functionality for parsing, formatting, and filtering .Xresources files.
 package xresources
 
 import (
@@ -11,7 +12,7 @@ func ParseFile(filepath string) (*Document, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	return Parse(file)
 }
