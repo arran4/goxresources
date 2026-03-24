@@ -404,10 +404,10 @@ jobs:
           discussion_arg=""
           categories=$(gh api graphql \
             -f query='              query($owner: String!, $name: String!) {
-            repository(owner: $owner, name: $name) {                  discussionCategories(first: 20) { nodes { name } }                }              }' \
+            repository(owner: $owner, name: $name) { hasDiscussionsEnabled discussionCategories(first: 20) { nodes { name } } } }' \
             -F owner="${GITHUB_REPOSITORY%%/*}" \
             -F name="${GITHUB_REPOSITORY##*/}" \
-            --jq '.data.repository.discussionCategories.nodes[].name' \
+            --jq 'if .data.repository.hasDiscussionsEnabled then .data.repository.discussionCategories.nodes[].name else empty end' \
             2>/dev/null || true)
 
           if echo "$categories" | grep -q '^Announcements$'; then
