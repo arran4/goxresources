@@ -422,6 +422,11 @@ jobs:
             echo "Did not match any known discussion categories"
           fi
 
+          if [[ -n "$prerelease" ]]; then
+            echo "Skipping discussion for prerelease"
+            discussion_arg=""
+          fi
+
           echo "Using discussion_arg: $discussion_arg"
 
           # shellcheck disable=SC2086
