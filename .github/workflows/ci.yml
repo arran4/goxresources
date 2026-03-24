@@ -408,13 +408,21 @@ jobs:
             -F owner="${GITHUB_REPOSITORY%%/*}" \
             -F name="${GITHUB_REPOSITORY##*/}" \
             --jq 'if .data.repository.hasDiscussionsEnabled then .data.repository.discussionCategories.nodes[].name else empty end' \
-            2>/dev/null || true)
+            || true)
+
+          echo "Categories fetched: $categories"
 
           if echo "$categories" | grep -i -q '^Announcements$'; then
+            echo "Matched Announcements category"
             discussion_arg='--discussion-category announcements'
           elif echo "$categories" | grep -i -q '^General$'; then
+            echo "Matched General category"
             discussion_arg='--discussion-category general'
+          else
+            echo "Did not match any known discussion categories"
           fi
+
+          echo "Using discussion_arg: $discussion_arg"
 
           # shellcheck disable=SC2086
           gh release create "$TAG" --generate-notes $prerelease $discussion_arg
