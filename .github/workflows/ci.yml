@@ -401,26 +401,7 @@ jobs:
             release-test|release-rc|release-alpha) prerelease="--prerelease" ;;
           esac
 
-          discussion_arg=""
-          categories=$(gh api graphql \
-            -f query='              query($owner: String!, $name: String!) {
-            repository(owner: $owner, name: $name) { hasDiscussionsEnabled discussionCategories(first: 20) { nodes { name } } } }' \
-            -F owner="${GITHUB_REPOSITORY%%/*}" \
-            -F name="${GITHUB_REPOSITORY##*/}" \
-            --jq 'if .data.repository.hasDiscussionsEnabled then .data.repository.discussionCategories.nodes[].name else empty end' \
-            || true)
-
-          echo "Categories fetched: $categories"
-
-          if match=$(echo "$categories" | grep -i '^Announcements$'); then
-            echo "Matched $match category"
-            discussion_arg="--discussion-category $match"
-          elif match=$(echo "$categories" | grep -i '^General$'); then
-            echo "Matched $match category"
-            discussion_arg="--discussion-category $match"
-          else
-            echo "Did not match any known discussion categories"
-          fi
+          discussion_arg="--discussion-category Announcements"
 
           if [[ -n "$prerelease" ]]; then
             echo "Skipping discussion for prerelease"
