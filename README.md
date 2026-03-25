@@ -23,35 +23,9 @@ The `xresources` library is perfect for you when:
 
 ### Installation
 
-#### GitHub Releases
-Download binaries from: https://github.com/your-org/xresources/releases
-
-#### Homebrew
-```bash
-brew tap arran4/homebrew-tap
-brew install xresources
-```
-
-#### Docker
-```bash
-docker pull ghcr.io/your-org/xresources:latest
-docker run --rm ghcr.io/your-org/xresources:latest --help
-```
-
-#### Go install
-```bash
-go install github.com/your-org/xresources@latest
-```
-
-#### Native packages
-- Debian/Ubuntu (`.deb`): see Releases assets
-- RPM (`.rpm`): see Releases assets
-- Alpine (`.apk`): see Releases assets
-- Arch (`.pkg.tar.zst` or repo): see Releases assets
-
 #### Go get (Library)
 ```bash
-go get github.com/your-org/xresources
+go get github.com/arran4/goxresources
 ```
 
 ### 1. Parsing and Formatting
@@ -65,7 +39,7 @@ import (
 	"fmt"
 	"log"
 	
-	"github.com/your-org/xresources"
+	"github.com/arran4/goxresources"
 )
 
 func main() {
@@ -94,7 +68,7 @@ import (
 	"fmt"
 	"log"
 	
-	"github.com/your-org/xresources"
+	"github.com/arran4/goxresources"
 )
 
 func main() {
@@ -132,14 +106,15 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/your-org/xresources"
+	"github.com/arran4/goxresources"
 )
 
 func main() {
+	// Auto load the user's .Xresources from their home directory
 	doc, err := xresources.Load(
-		xresources.UseXDG(true),
 		xresources.UseHomeDir(true),
-		xresources.MergeSystem(true),
+		// You can also load an arbitrary user's .Xresources by specifying a custom path:
+		// xresources.CustomPaths{"/home/otheruser/.Xresources"},
 	)
 	if err != nil {
 		log.Fatal(err)
